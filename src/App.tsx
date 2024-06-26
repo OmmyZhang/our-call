@@ -18,6 +18,23 @@ import {
 
 console.log("Current SDK VERSION: ", VERSION);
 
+const CTEXT = "5634944c8a88556f84e824bf36fcf12a";
+const coder = new TextEncoder();
+
+function gen_app_id(s: string) {
+  const ctext = CTEXT.split("");
+
+  const parray = coder.encode(s);
+
+  return Array.from({ length: 32 }, (_, i) => {
+    const p = parray[i] ? parray[i] % ctext.length : 0;
+    const x = ctext[p];
+    ctext.splice(p, 1);
+    return x;
+  }).join("");
+}
+
+
 onCameraChanged((device) => {
   console.log("onCameraChanged: ", device);
 })
@@ -62,11 +79,8 @@ function App() {
   };
 
   const [isJoined, setIsJoined] = useState(false);
-  const channel = useRef("");
-  // you can apply appid follow the guide https://www.agora.io/en/blog/how-to-get-started-with-agora/
-  const appid = useRef("");
-  // you can apply token follow the guide https://www.agora.io/en/blog/how-to-get-started-with-agora/
-  const token = useRef("");
+  const channel = useRef("123");
+  const appid_passwd = useRef("");
 
   const joinChannel = async () => {
     if (!channel.current) {
@@ -80,9 +94,9 @@ function App() {
     client.on("user-published", onUserPublish);
 
     await client.join(
-      appid.current,
+      gen_app_id(appid_passwd.current),
       channel.current,
-      token.current || null,
+      null,
       null
     );
     setIsJoined(true);
@@ -150,26 +164,15 @@ function App() {
             Turn {isAudioOn ? "off" : "on"} Microphone
           </button>
         </div>
-        <h3>
-          {`Please input the appid and token (`}
-          <a href="https://www.agora.io/en/blog/how-to-get-started-with-agora">
-            Create an account.
-          </a>
-          {`) `}
-        </h3>
         <input
-          defaultValue={appid.current}
-          placeholder="appid"
-          onChange={(e) => (appid.current = e.target.value)}
+          defaultValue={appid_passwd.current}
+          placeholder="芝麻开门!"
+          onChange={(e) => (appid_passwd.current = e.target.value)}
         />
-        <input
-          defaultValue={token.current}
-          placeholder="token"
-          onChange={(e) => (token.current = e.target.value)}
-        />
-        <h3>Please input the channel name</h3>
+        <br />
         <input
           defaultValue={channel.current}
+          placeholder="Channel name"
           onChange={(e) => (channel.current = e.target.value)}
         />
         <div className="buttons">
