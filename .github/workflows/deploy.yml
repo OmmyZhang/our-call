@@ -18,8 +18,6 @@ jobs:
         run: yarn
       - name: "Build"
         run: yarn build
-        env:
-          PUBLIC_URL: https://gcore.jsdelivr.net/gh/ommyzhang/our-call@gh-pages
       - name: "Deploy"
         uses: peaceiris/actions-gh-pages@v3
         with:
