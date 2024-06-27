@@ -50,7 +50,7 @@ export const Basics = () => {
             {remoteUsers.map((user) => (
               <div className="user" key={user.uid}>
                 <RemoteUser cover="https://www.agora.io/en/wp-content/uploads/2022/10/3d-spatial-audio-icon.svg" user={user}>
-                  <samp className="user-name">{user.uid}</samp>
+                  {/*<samp className="user-name">{user.uid}</samp>*/}
                 </RemoteUser>
               </div>
             ))}
@@ -58,14 +58,14 @@ export const Basics = () => {
         ) : (
           <div className="join-room">
             <input
-              onChange={e => setAppId(e.target.value)}
-              placeholder="芝麻开门!"
-              value={appId}
-            />
-            <input
               onChange={e => setChannel(e.target.value)}
               placeholder="<Your channel Name>"
               value={channel}
+            />
+            <input
+              onChange={e => setAppId(e.target.value)}
+              placeholder="芝麻开门!"
+              value={appId}
             />
             <button
               className={`join-channel ${!appId || !channel ? "disabled" : ""}`}
