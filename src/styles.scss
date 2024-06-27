@@ -1,0 +1,95 @@
+$green: #667952;
+$white: #E5E8D2;
+
+body {
+  background-color: $green;
+}
+
+.our-call {
+
+  @font-face {
+    font-family: 'pixel';
+    src: url('./assets/ark-pixel-12px-proportional-zh_cn.ttf') format('truetype');
+  }
+
+  @font-face {
+    font-family: 'googlepixel';
+    src: url('./assets/PixelifySans-Regular.ttf') format('truetype');
+  }
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding-top: 50px;
+  font-family: 'googlepixel';
+  color: $white;
+
+  .header {
+    white-space: nowrap;
+    font-size: 75px;
+  }
+
+  .join {
+    margin-top: 100px;
+    display: flex;
+    flex-direction: column;
+    width: min(360px, 85%);
+
+    .input {
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      >label {
+        text-align: right;
+        padding-right: 10px;
+        font-size: 20px;
+        display: inline-block;
+        width: 100px;
+      }
+
+      >input {
+        width: min(250px, 70%);
+        font-family: 'pixel';
+        padding: 2px 8px;
+        height: 25px;
+        color: $white;
+        border-radius: 6px;
+        outline: none;
+        border: none;
+        font-size: 17px;
+        background-color: rgba(black, 0.2);
+
+        &::placeholder {
+          color: rgba($white, 0.4);
+        }
+      }
+    }
+
+    button {
+      margin-top: 40px;
+      font-family: 'pixel';
+      padding: 5px 10px;
+      background-color: $white;
+      color: $green;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      font-size: 20px;
+      box-shadow: 0 0 10px 0 rgba($green, 0.5);
+
+      &:disabled {
+        background-color: rgba($white, 0.5);
+        color: rgba($green, 0.5);
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  .room {
+
+  }
+
+}

@@ -1,7 +1,6 @@
 import {
   LocalUser,
   RemoteUser,
-  useIsConnected,
   useJoin,
   useLocalMicrophoneTrack,
   useLocalCameraTrack,
@@ -10,40 +9,56 @@ import {
 } from "agora-rtc-react";
 import { useState, useEffect, useRef } from "react";
 import { gen_app_id } from "./tools";
+import Mao from "./assets/mao.png";
+import Ji from "./assets/ji.png";
+import "./styles.scss";
 
-import "./styles.css";
+const MAX_MAP = {
+  S: {
+    W: 350,
+    H: 350,
+  },
+  L: {
+    W: 500,
+    H: 500,
+  }
+}
 
-const MAX_W = 400;
-const MAX_H = 400;
+
+const getVideoSize = () => {
+  return window.innerWidth > 800 ? [MAX_MAP.L.W, MAX_MAP.L.H] : [MAX_MAP.S.W, MAX_MAP.S.H];
+}
 
 export const Basics = () => {
   const [calling, setCalling] = useState(false);
-  const isConnected = useIsConnected();
   const [appId, setAppId] = useState("");
   const [channel, setChannel] = useState("123");
-
   const realAppId = calling ? gen_app_id(appId) : "";
-
-  useJoin({ appid: realAppId, channel: channel, token: null }, calling);
+  const join = useJoin({ appid: realAppId, channel: channel, token: null }, calling);
   //local user
   const [micOn, setMic] = useState(true);
   const [cameraOn, setCamera] = useState(true);
   const { localMicrophoneTrack } = useLocalMicrophoneTrack(micOn);
   const { localCameraTrack } = useLocalCameraTrack(cameraOn);
-  usePublish([localMicrophoneTrack, localCameraTrack]);
   //remote users
   const remoteUsers = useRemoteUsers();
+
+  usePublish([localMicrophoneTrack, localCameraTrack]);
 
   const [videoSizeDict, setVideosSizeDict] = useState<{ [Key: string | number]: [number, number] }>({});
 
   // FIXME: 这么写仍然不能setVideosSizeDict的时候触发渲染
   const cbSaver = useRef(() => { });
   cbSaver.current = () => {
-    console.log(videoSizeDict);
+
+    // console.log(videoSizeDict);
+    const windowWidth = window.innerWidth;
+    const MAX_W = windowWidth > 800 ? MAX_MAP.L.W : MAX_MAP.S.W;
+    const MAX_H = windowWidth > 800 ? MAX_MAP.L.H : MAX_MAP.S.H;
 
     // FIXME
     const stats = localCameraTrack?.getStats();
-    console.log(localCameraTrack, stats);
+    // console.log(localCameraTrack, stats);
     if (stats && stats.sendResolutionWidth) {
       let [width, height] = [stats.sendResolutionWidth, stats.sendResolutionHeight];
       if (width > MAX_W) {
@@ -84,77 +99,96 @@ export const Basics = () => {
 
 
   const localVideoSize = videoSizeDict[0];
-  const [localWidth, localHeight] = localVideoSize ? localVideoSize : [MAX_W, MAX_H];
+  const [localWidth, localHeight] = localVideoSize ? localVideoSize : getVideoSize();
 
   return (
-    <>
-      <div className="room">
-        {isConnected ? (
+    <div className="our-call">
+      <div className="header">OUR CALL</div>
+
+      { join.isConnected ? (
+        <div className="room">
           <div className="user-list">
-            <div className="user" style={{ width: localWidth, height: localHeight }}>
+            <div className="user" style={ { width: localWidth, height: localHeight } }>
               <LocalUser
-                audioTrack={localMicrophoneTrack}
-                cameraOn={cameraOn}
-                micOn={micOn}
-                videoTrack={localCameraTrack}
-                cover="https://www.agora.io/en/wp-content/uploads/2022/10/3d-spatial-audio-icon.svg"
+                audioTrack={ localMicrophoneTrack }
+                cameraOn={ cameraOn }
+                micOn={ micOn }
+                videoTrack={ localCameraTrack }
+                cover={ Ji }
               >
                 <samp className="user-name">You</samp>
               </LocalUser>
             </div>
-            {remoteUsers.map((user) => {
+            { remoteUsers.map((user) => {
               const videoSize = videoSizeDict[user.uid];
+              const [MAX_W, MAX_H] = getVideoSize();
               const [width, height] = videoSize ? videoSize : [MAX_W, MAX_H];
               return (
-                <div className="user" key={user.uid} style={{ width, height }}>
-                  <RemoteUser cover="https://www.agora.io/en/wp-content/uploads/2022/10/3d-spatial-audio-icon.svg" user={user}>
-                    {/*<samp className="user-name">{user.uid}</samp>*/}
+                <div className="user" key={ user.uid } style={ { width, height } }>
+                  <RemoteUser cover={ Mao } user={ user }>
                   </RemoteUser>
                 </div>
               )
-            })}
+            }) }
           </div>
-        ) : (
-          <div className="join-room">
-            <input
-              onChange={e => setChannel(e.target.value)}
-              placeholder="<Your channel Name>"
-              value={channel}
-            />
-            <input
-              onChange={e => setAppId(e.target.value)}
-              placeholder="芝麻开门!"
-              value={appId}
-            />
+          <div className="control">
+            <div className="left-control">
+              <button onClick={ () => setMic(a => !a) }>
+                <i className={ `microphone ${ !micOn ? "off" : "" }` } />
+              </button>
+              <button onClick={ () => setCamera(a => !a) }>
+                <i className={ `camera ${ !cameraOn ? "off" : "" }` } />
+              </button>
+            </div>
             <button
-              className={`join-channel ${!appId || !channel ? "disabled" : ""}`}
-              disabled={!appId || !channel}
-              onClick={() => setCalling(true)}
+              onClick={ () => setCalling(a => !a) }
             >
-              <span>Join Channel</span>
+              <i className={ `phone ${ !calling ? "off" : "" }` }></i>
             </button>
           </div>
-        )}
-      </div>
-      {isConnected && (
-        <div className="control">
-          <div className="left-control">
-            <button className="btn" onClick={() => setMic(a => !a)}>
-              <i className={`i-microphone ${!micOn ? "off" : ""}`} />
-            </button>
-            <button className="btn" onClick={() => setCamera(a => !a)}>
-              <i className={`i-camera ${!cameraOn ? "off" : ""}`} />
-            </button>
+        </div>
+
+      ) : (
+        <div className="join">
+          <div className="input">
+            <label>CHANNEL</label>
+            <input
+              onChange={ e => setChannel(e.target.value) }
+              placeholder="Your channel Name"
+              value={ channel }
+            />
+          </div>
+          <div className="input">
+            <label>KEY
+            </label>
+            <input
+              onKeyDown={ (e) => {
+                if (e.key === "Enter") {
+                  setCalling(true);
+                  e.stopPropagation();
+                }
+              } }
+              onChange={ e => {
+                setCalling(false);
+                setAppId(e.target.value)
+              } }
+              placeholder="请输入密钥"
+              value={ appId }
+            />
           </div>
           <button
-            className={`btn btn-phone ${calling ? "btn-phone-active" : ""}`}
-            onClick={() => setCalling(a => !a)}
+            className={ `join-channel ${ !appId || !channel ? "disabled" : "" }` }
+            disabled={ !appId || !channel || calling }
+            onClick={ () => setCalling(true) }
           >
-            {calling ? <i className="i-phone-hangup" /> : <i className="i-mdi-phone" />}
+            <span>    {
+              !calling ? "芝麻开门！" :
+                join.isLoading ? "芝麻努力开门 ing" : join.error ? "密钥有误" : "?"
+            }</span>
           </button>
         </div>
-      )}
-    </>
+      ) }
+    </div>
   );
 };
 
