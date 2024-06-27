@@ -133,18 +133,11 @@ export const Basics = () => {
           </div>
           <div className="control">
             <div className="left-control">
-              <button onClick={ () => setMic(a => !a) }>
-                <i className={ `microphone ${ !micOn ? "off" : "" }` } />
-              </button>
-              <button onClick={ () => setCamera(a => !a) }>
-                <i className={ `camera ${ !cameraOn ? "off" : "" }` } />
-              </button>
+              <div onClick={ () => setMic(a => !a) } className={ `microphone ${ !micOn ? "off" : "" }` } />
+              <div onClick={ () => setCamera(a => !a) } className={ `camera ${ !cameraOn ? "off" : "" }` } />
             </div>
-            <button
-              onClick={ () => setCalling(a => !a) }
-            >
-              <i className={ `phone ${ !calling ? "off" : "" }` }></i>
-            </button>
+
+            <div onClick={ () => setCalling(a => !a) } className={ `phone ${ !calling ? "off" : "" }` } />
           </div>
         </div>
 

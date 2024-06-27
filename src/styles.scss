@@ -90,6 +90,43 @@ body {
 
   .room {
 
+    margin-top: 30px;
+
+    .control {
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+
+      .left-control {
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .phone,
+      .camera,
+      .microphone {
+        width: 50px;
+        height: 50px;
+        background-size: contain;
+        cursor: pointer;
+
+        &.off {
+          filter: grayscale(100%);
+        }
+      }
+
+      .phone {
+        background-image: url("./assets/phone.svg")
+      }
+
+      .camera {
+        background-image: url("./assets/camera.svg")
+      }
+
+      .microphone {
+        background-image: url("./assets/microphone.svg")
+      }
+    }
   }
 
 }
