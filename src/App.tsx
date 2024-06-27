@@ -8,10 +8,13 @@ import {
   usePublish,
   useRemoteUsers,
 } from "agora-rtc-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { gen_app_id } from "./tools";
 
 import "./styles.css";
+
+const MAX_W = 400;
+const MAX_H = 400;
 
 export const Basics = () => {
   const [calling, setCalling] = useState(false);
@@ -31,12 +34,64 @@ export const Basics = () => {
   //remote users
   const remoteUsers = useRemoteUsers();
 
+  const [videoSizeDict, setVideosSizeDict] = useState<{ [Key: string | number]: [number, number] }>({});
+
+  // FIXME: 这么写仍然不能setVideosSizeDict的时候触发渲染
+  const cbSaver = useRef(() => { });
+  cbSaver.current = () => {
+    console.log(videoSizeDict);
+
+    // FIXME
+    const stats = localCameraTrack?.getStats();
+    console.log(localCameraTrack, stats);
+    if (stats && stats.sendResolutionWidth) {
+      let [width, height] = [stats.sendResolutionWidth, stats.sendResolutionHeight];
+      if (width > MAX_W) {
+        [width, height] = [MAX_W, height * MAX_W / width];
+      }
+      if (height > MAX_H) {
+        [width, height] = [width * MAX_H / height, MAX_H];
+      }
+      setVideosSizeDict((prev) =>
+        Object.assign(prev, { 0: [width, height] }));
+    }
+
+    remoteUsers.forEach((user) => {
+      console.log("User:", user);
+      const stats = user.videoTrack?.getStats();
+      if (stats && stats.receiveResolutionWidth) {
+        let [width, height] = [stats.receiveResolutionWidth, stats.receiveResolutionHeight];
+        if (width > MAX_W) {
+          [width, height] = [MAX_W, height * MAX_W / width];
+        }
+        if (height > MAX_H) {
+          [width, height] = [width * MAX_H / height, MAX_H];
+        }
+        console.log(width, height);
+        setVideosSizeDict((prev) => Object.assign(prev, { [user.uid]: [width, height] }));
+      }
+    });
+  };
+
+  useEffect(() => {
+    const interval = setInterval(
+      cbSaver.current
+      , 500);
+
+    //Clearing the interval
+    return () => clearInterval(interval);
+  }, []);
+
+
+  const localVideoSize = videoSizeDict[0];
+  const [localWidth, localHeight] = localVideoSize ? localVideoSize : [MAX_W, MAX_H];
+
   return (
     <>
       <div className="room">
         {isConnected ? (
           <div className="user-list">
-            <div className="user">
+            <div className="user" style={{ width: localWidth, height: localHeight }}>
               <LocalUser
                 audioTrack={localMicrophoneTrack}
                 cameraOn={cameraOn}
@@ -47,13 +102,17 @@ export const Basics = () => {
                 <samp className="user-name">You</samp>
               </LocalUser>
             </div>
-            {remoteUsers.map((user) => (
-              <div className="user" key={user.uid}>
-                <RemoteUser cover="https://www.agora.io/en/wp-content/uploads/2022/10/3d-spatial-audio-icon.svg" user={user}>
-                  {/*<samp className="user-name">{user.uid}</samp>*/}
-                </RemoteUser>
-              </div>
-            ))}
+            {remoteUsers.map((user) => {
+              const videoSize = videoSizeDict[user.uid];
+              const [width, height] = videoSize ? videoSize : [MAX_W, MAX_H];
+              return (
+                <div className="user" key={user.uid} style={{ width, height }}>
+                  <RemoteUser cover="https://www.agora.io/en/wp-content/uploads/2022/10/3d-spatial-audio-icon.svg" user={user}>
+                    {/*<samp className="user-name">{user.uid}</samp>*/}
+                  </RemoteUser>
+                </div>
+              )
+            })}
           </div>
         ) : (
           <div className="join-room">
