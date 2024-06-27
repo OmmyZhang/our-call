@@ -7,27 +7,12 @@ import {
   usePublish,
   useRemoteUsers,
 } from "agora-rtc-react";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { gen_app_id } from "./tools";
 import Mao from "./assets/mao.png";
 import Ji from "./assets/ji.png";
 import "./styles.scss";
 
-const MAX_MAP = {
-  S: {
-    W: 350,
-    H: 350,
-  },
-  L: {
-    W: 500,
-    H: 500,
-  }
-}
-
-
-const getVideoSize = () => {
-  return window.innerWidth > 800 ? [MAX_MAP.L.W, MAX_MAP.L.H] : [MAX_MAP.S.W, MAX_MAP.S.H];
-}
 
 export const Basics = () => {
   const [calling, setCalling] = useState(false);
@@ -45,62 +30,6 @@ export const Basics = () => {
 
   usePublish([localMicrophoneTrack, localCameraTrack]);
 
-  const [videoSizeDict, setVideosSizeDict] = useState<{ [Key: string | number]: [number, number] }>({});
-
-  // FIXME: 这么写仍然不能setVideosSizeDict的时候触发渲染
-  const cbSaver = useRef(() => { });
-  cbSaver.current = () => {
-
-    // console.log(videoSizeDict);
-    const windowWidth = window.innerWidth;
-    const MAX_W = windowWidth > 800 ? MAX_MAP.L.W : MAX_MAP.S.W;
-    const MAX_H = windowWidth > 800 ? MAX_MAP.L.H : MAX_MAP.S.H;
-
-    // FIXME
-    const stats = localCameraTrack?.getStats();
-    // console.log(localCameraTrack, stats);
-    if (stats && stats.sendResolutionWidth) {
-      let [width, height] = [stats.sendResolutionWidth, stats.sendResolutionHeight];
-      if (width > MAX_W) {
-        [width, height] = [MAX_W, height * MAX_W / width];
-      }
-      if (height > MAX_H) {
-        [width, height] = [width * MAX_H / height, MAX_H];
-      }
-      setVideosSizeDict((prev) =>
-        Object.assign(prev, { 0: [width, height] }));
-    }
-
-    remoteUsers.forEach((user) => {
-      console.log("User:", user);
-      const stats = user.videoTrack?.getStats();
-      if (stats && stats.receiveResolutionWidth) {
-        let [width, height] = [stats.receiveResolutionWidth, stats.receiveResolutionHeight];
-        if (width > MAX_W) {
-          [width, height] = [MAX_W, height * MAX_W / width];
-        }
-        if (height > MAX_H) {
-          [width, height] = [width * MAX_H / height, MAX_H];
-        }
-        console.log(width, height);
-        setVideosSizeDict((prev) => Object.assign(prev, { [user.uid]: [width, height] }));
-      }
-    });
-  };
-
-  useEffect(() => {
-    const interval = setInterval(
-      cbSaver.current
-      , 500);
-
-    //Clearing the interval
-    return () => clearInterval(interval);
-  }, []);
-
-
-  const localVideoSize = videoSizeDict[0];
-  const [localWidth, localHeight] = localVideoSize ? localVideoSize : getVideoSize();
-
   return (
     <div className="our-call">
       <div className="header">OUR CALL</div>
@@ -108,7 +37,7 @@ export const Basics = () => {
       { join.isConnected ? (
         <div className="room">
           <div className="user-list">
-            <div className="user" style={ { width: localWidth, height: localHeight } }>
+            <div className="user">
               <LocalUser
                 audioTrack={ localMicrophoneTrack }
                 cameraOn={ cameraOn }
@@ -120,11 +49,8 @@ export const Basics = () => {
               </LocalUser>
             </div>
             { remoteUsers.map((user) => {
-              const videoSize = videoSizeDict[user.uid];
-              const [MAX_W, MAX_H] = getVideoSize();
-              const [width, height] = videoSize ? videoSize : [MAX_W, MAX_H];
               return (
-                <div className="user" key={ user.uid } style={ { width, height } }>
+                <div className="user" key={ user.uid }>
                   <RemoteUser cover={ Mao } user={ user }>
                   </RemoteUser>
                 </div>

@@ -89,8 +89,8 @@ body {
   }
 
   .room {
-
     margin: 60px 10px 75px;
+    width: 100%;
 
 
     .user-list {
@@ -99,6 +99,18 @@ body {
       justify-content: space-around;
       align-items: center;
       gap: 30px;
+
+      .user {
+        width: fit-content;
+        height: fit-content;
+
+        video {
+          max-width: 500px !important;
+          max-height: 500px !important;
+          position: relative !important;
+          display: block;
+        }
+      }
     }
 
     .control {
