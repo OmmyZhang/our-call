@@ -21,7 +21,7 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 50px 10px 0;
+  padding-top: 50px;
   font-family: 'googlepixel';
   color: $white;
 
@@ -90,7 +90,8 @@ body {
 
   .room {
 
-    margin-top: 60px;
+    margin: 60px 10px 75px;
+
 
     .user-list {
       display: flex;
@@ -101,11 +102,16 @@ body {
     }
 
     .control {
-      margin-top: 80px;
-      padding: 10px;
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      width: 100vw;
+      box-sizing: border-box;
+      padding: 10px 20px;
+
       display: flex;
       justify-content: space-between;
-      background: #3332;
+      background: #3334;
 
       .left-control {
         display: flex;
