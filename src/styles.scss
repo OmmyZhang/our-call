@@ -21,7 +21,7 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding-top: 50px;
+  padding: 50px 10px 0;
   font-family: 'googlepixel';
   color: $white;
 
@@ -90,16 +90,27 @@ body {
 
   .room {
 
-    margin-top: 30px;
+    margin-top: 60px;
+
+    .user-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      align-items: center;
+      gap: 30px;
+    }
 
     .control {
-      margin-top: 20px;
+      margin-top: 80px;
+      padding: 10px;
       display: flex;
       justify-content: space-between;
+      background: #3332;
 
       .left-control {
         display: flex;
         justify-content: space-between;
+        gap: 30px;
       }
 
       .phone,
