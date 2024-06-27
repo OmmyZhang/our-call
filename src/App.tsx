@@ -1,210 +1,103 @@
-import { useRef, useState } from "react";
-import "./App.css";
-import type {
-  ICameraVideoTrack,
-  IMicrophoneAudioTrack,
-  IAgoraRTCClient,
-  IAgoraRTCRemoteUser,
-} from "agora-rtc-sdk-ng/esm";
-
 import {
-  VERSION,
-  createClient,
-  createCameraVideoTrack,
-  createMicrophoneAudioTrack,
-  onCameraChanged,
-  onMicrophoneChanged
-} from "agora-rtc-sdk-ng/esm"
+  LocalUser,
+  RemoteUser,
+  useIsConnected,
+  useJoin,
+  useLocalMicrophoneTrack,
+  useLocalCameraTrack,
+  usePublish,
+  useRemoteUsers,
+} from "agora-rtc-react";
+import { useState } from "react";
+import { gen_app_id } from "./tools";
 
-console.log("Current SDK VERSION: ", VERSION);
+import "./styles.css";
 
-const CTEXT = "5634944c8a88556f84e824bf36fcf12a";
-const coder = new TextEncoder();
+export const Basics = () => {
+  const [calling, setCalling] = useState(false);
+  const isConnected = useIsConnected();
+  const [appId, setAppId] = useState("");
+  const [channel, setChannel] = useState("123");
 
-function gen_app_id(s: string) {
-  const ctext = CTEXT.split("");
+  const realAppId = calling ? gen_app_id(appId) : "";
 
-  const parray = coder.encode(s);
-
-  return Array.from({ length: 32 }, (_, i) => {
-    const p = parray[i] ? parray[i] % ctext.length : 0;
-    const x = ctext[p];
-    ctext.splice(p, 1);
-    return x;
-  }).join("");
-}
-
-
-onCameraChanged((device) => {
-  console.log("onCameraChanged: ", device);
-})
-onMicrophoneChanged((device) => {
-  console.log("onMicrophoneChanged: ", device);
-})
-
-const client: IAgoraRTCClient = createClient({
-  mode: "rtc",
-  codec: "vp8",
-});
-let audioTrack: IMicrophoneAudioTrack;
-let videoTrack: ICameraVideoTrack;
-function App() {
-  const [isAudioOn, setIsAudioOn] = useState(false);
-  const [isVideoOn, setIsVideoOn] = useState(false);
-  const [isAudioPubed, setIsAudioPubed] = useState(false);
-  const [isVideoPubed, setIsVideoPubed] = useState(false);
-  const [isVideoSubed, setIsVideoSubed] = useState(false);
-
-  const turnOnCamera = async (flag?: boolean) => {
-    flag = flag ?? !isVideoOn;
-    setIsVideoOn(flag);
-
-    if (videoTrack) {
-      return videoTrack.setEnabled(flag);
-    }
-    videoTrack = await createCameraVideoTrack();
-    videoTrack.play("camera-video");
-  };
-
-  const turnOnMicrophone = async (flag?: boolean) => {
-    flag = flag ?? !isAudioOn;
-    setIsAudioOn(flag);
-
-    if (audioTrack) {
-      return audioTrack.setEnabled(flag);
-    }
-
-    audioTrack = await createMicrophoneAudioTrack();
-    // audioTrack.play();
-  };
-
-  const [isJoined, setIsJoined] = useState(false);
-  const channel = useRef("123");
-  const appid_passwd = useRef("");
-
-  const joinChannel = async () => {
-    if (!channel.current) {
-      channel.current = "react-room";
-    }
-
-    if (isJoined) {
-      await leaveChannel();
-    }
-
-    client.on("user-published", onUserPublish);
-
-    await client.join(
-      gen_app_id(appid_passwd.current),
-      channel.current,
-      null,
-      null
-    );
-    setIsJoined(true);
-  };
-
-  const leaveChannel = async () => {
-    setIsJoined(false);
-    setIsAudioPubed(false);
-    setIsVideoPubed(false);
-
-    await client.leave();
-  };
-
-  const onUserPublish = async (
-    user: IAgoraRTCRemoteUser,
-    mediaType: "video" | "audio"
-  ) => {
-    if (mediaType === "video") {
-      const remoteTrack = await client.subscribe(user, mediaType);
-      remoteTrack.play("remote-video");
-      setIsVideoSubed(true);
-    }
-    if (mediaType === "audio") {
-      const remoteTrack = await client.subscribe(user, mediaType);
-      remoteTrack.play();
-    }
-  };
-
-  const publishVideo = async () => {
-    await turnOnCamera(true);
-
-    if (!isJoined) {
-      await joinChannel();
-    }
-    await client.publish(videoTrack);
-    setIsVideoPubed(true);
-  };
-
-  const publishAudio = async () => {
-    await turnOnMicrophone(true);
-
-    if (!isJoined) {
-      await joinChannel();
-    }
-
-    await client.publish(audioTrack);
-    setIsAudioPubed(true);
-  };
+  useJoin({ appid: realAppId, channel: channel, token: null }, calling);
+  //local user
+  const [micOn, setMic] = useState(true);
+  const [cameraOn, setCamera] = useState(true);
+  const { localMicrophoneTrack } = useLocalMicrophoneTrack(micOn);
+  const { localCameraTrack } = useLocalCameraTrack(cameraOn);
+  usePublish([localMicrophoneTrack, localCameraTrack]);
+  //remote users
+  const remoteUsers = useRemoteUsers();
 
   return (
     <>
-      <div className="left-side">
-        <h3>Pleat check you camera / microphone!</h3>
-        <div className="buttons">
-          <button
-            onClick={() => turnOnCamera()}
-            className={isVideoOn ? "button-on" : ""}
-          >
-            Turn {isVideoOn ? "off" : "on"} camera
-          </button>
-          <button
-            onClick={() => turnOnMicrophone()}
-            className={isAudioOn ? "button-on" : ""}
-          >
-            Turn {isAudioOn ? "off" : "on"} Microphone
-          </button>
-        </div>
-        <input
-          defaultValue={appid_passwd.current}
-          placeholder="芝麻开门!"
-          onChange={(e) => (appid_passwd.current = e.target.value)}
-        />
-        <br />
-        <input
-          defaultValue={channel.current}
-          placeholder="Channel name"
-          onChange={(e) => (channel.current = e.target.value)}
-        />
-        <div className="buttons">
-          <button onClick={joinChannel} className={isJoined ? "button-on" : ""}>
-            Join Channel
-          </button>
-          <button
-            onClick={publishVideo}
-            className={isVideoPubed ? "button-on" : ""}
-          >
-            Publish Video
-          </button>
-          <button
-            onClick={publishAudio}
-            className={isAudioPubed ? "button-on" : ""}
-          >
-            Publish Audio
-          </button>
-          <button onClick={leaveChannel}>Leave Channel</button>
-        </div>
-      </div>
-      <div className="right-side">
-        <video id="camera-video" hidden={isVideoOn ? false : true}></video>
-        <video id="remote-video" hidden={isVideoSubed ? false : true}></video>
-        {isJoined && !isVideoSubed ? (
-          <div className="waiting">
-            You can shared channel {channel.current} to others.....
+      <div className="room">
+        {isConnected ? (
+          <div className="user-list">
+            <div className="user">
+              <LocalUser
+                audioTrack={localMicrophoneTrack}
+                cameraOn={cameraOn}
+                micOn={micOn}
+                videoTrack={localCameraTrack}
+                cover="https://www.agora.io/en/wp-content/uploads/2022/10/3d-spatial-audio-icon.svg"
+              >
+                <samp className="user-name">You</samp>
+              </LocalUser>
+            </div>
+            {remoteUsers.map((user) => (
+              <div className="user" key={user.uid}>
+                <RemoteUser cover="https://www.agora.io/en/wp-content/uploads/2022/10/3d-spatial-audio-icon.svg" user={user}>
+                  <samp className="user-name">{user.uid}</samp>
+                </RemoteUser>
+              </div>
+            ))}
           </div>
-        ) : null}
+        ) : (
+          <div className="join-room">
+            <input
+              onChange={e => setAppId(e.target.value)}
+              placeholder="芝麻开门!"
+              value={appId}
+            />
+            <input
+              onChange={e => setChannel(e.target.value)}
+              placeholder="<Your channel Name>"
+              value={channel}
+            />
+            <button
+              className={`join-channel ${!appId || !channel ? "disabled" : ""}`}
+              disabled={!appId || !channel}
+              onClick={() => setCalling(true)}
+            >
+              <span>Join Channel</span>
+            </button>
+          </div>
+        )}
       </div>
+      {isConnected && (
+        <div className="control">
+          <div className="left-control">
+            <button className="btn" onClick={() => setMic(a => !a)}>
+              <i className={`i-microphone ${!micOn ? "off" : ""}`} />
+            </button>
+            <button className="btn" onClick={() => setCamera(a => !a)}>
+              <i className={`i-camera ${!cameraOn ? "off" : ""}`} />
+            </button>
+          </div>
+          <button
+            className={`btn btn-phone ${calling ? "btn-phone-active" : ""}`}
+            onClick={() => setCalling(a => !a)}
+          >
+            {calling ? <i className="i-phone-hangup" /> : <i className="i-mdi-phone" />}
+          </button>
+        </div>
+      )}
     </>
   );
-}
+};
 
-export default App;
+export default Basics;
+
