@@ -39,7 +39,6 @@ export const Basics = () => {
           <div className="user-list">
             <div className="user">
               <LocalUser
-                audioTrack={ localMicrophoneTrack }
                 cameraOn={ cameraOn }
                 micOn={ micOn }
                 videoTrack={ localCameraTrack }
