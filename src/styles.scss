@@ -1,6 +1,6 @@
 $green: #667952;
 $white: #E5E8D2;
-$side-user-size: calc(min(200px, 40vw));
+$side-user-size: min(125px, 40vw);
 
 body {
   background-color: $green;
@@ -141,12 +141,13 @@ body {
           z-index: 98;
           position: fixed;
           top: 193px;
-          left: 50%;
-          transform: translateX(-50%);
+          width: 100vw;
 
           video {
             max-width: 95vw !important;
             max-height: calc(100vh - 300px) !important;
+            margin: 0 auto;
+            object-fit: contain !important;
           }
         }
       }
