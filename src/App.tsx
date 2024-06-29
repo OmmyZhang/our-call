@@ -31,7 +31,7 @@ export const Basics = () => {
   usePublish([localMicrophoneTrack, localCameraTrack]);
 
   return (
-    <div className="our-call">
+    <div className="our-call"> 
       <div className="header">OUR CALL</div>
 
       { join.isConnected ? (

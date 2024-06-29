@@ -1,21 +1,14 @@
-# Quick demo for AgoraRTC in React
+# Our Call
 
-## Setup
+>I hate wechat call and the telegram call condition is unstable.
 
-install dependencies
 
-```bash
-pnpm i
-```
+<img width="800" src="https://raw.githubusercontent.com/OmmyZhang/our-call/master/index.png">
 
-run react quick start demo
+<img width="800" src="https://raw.githubusercontent.com/OmmyZhang/our-call/master/call.png">
 
-```bash
-pnpm run dev
-```
 
-build react quick start demo
+---
 
-```bash
-pnpm run build
-```
+1. Avatar assets come from the game *Palworld*. Icons come from https://www.svgviewer.dev/. If the copyright owner has any objections, please contact me.
+2. Use the sdk of [Agora.io](https://www.agora.io/en/) to achieve the call function.
