@@ -28,6 +28,8 @@ export const Basics = () => {
   //remote users
   const remoteUsers = useRemoteUsers();
 
+  const [mainUser, setMainUser] = useState<number | string | null>(null);
+
   usePublish([localMicrophoneTrack, localCameraTrack]);
 
   return (
@@ -36,8 +38,11 @@ export const Basics = () => {
 
       { join.isConnected ? (
         <div className="room">
-          <div className="user-list">
-            <div className="user">
+          <div className={`user-list ${mainUser === null ? '' : 'withMain'}`}>
+            <div
+              className={`user ${mainUser === 0 ? 'main' : 'side'}`}
+              onClick={ () => setMainUser(mainUser == 0 ? null : 0)}
+            >
               <LocalUser
                 cameraOn={ cameraOn }
                 micOn={ micOn }
@@ -49,7 +54,11 @@ export const Basics = () => {
             </div>
             { remoteUsers.map((user) => {
               return (
-                <div className="user" key={ user.uid }>
+                <div
+                  className={`user ${mainUser === user.uid ? 'main' : 'side'}`}
+                  key={ user.uid }
+                  onClick={ () => setMainUser(mainUser == user.uid ? null : user.uid)}
+                >
                   <RemoteUser cover={ Mao } user={ user }>
                   </RemoteUser>
                 </div>

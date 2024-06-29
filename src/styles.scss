@@ -1,5 +1,6 @@
 $green: #667952;
 $white: #E5E8D2;
+$side-user-size: calc(min(200px, 40vw));
 
 body {
   background-color: $green;
@@ -117,9 +118,42 @@ body {
           }
         }
       }
+
+      &.withMain {
+        position: fixed;
+        bottom: 100px;
+        left: 0;
+        width: 100%;
+        flex-wrap: nowrap;
+        justify-content: flex-end;
+
+        .user.side {
+          height: $side-user-size;
+          z-index: 99;
+
+          div {
+            min-width: $side-user-size;
+            min-height: $side-user-size;
+          }
+        }
+
+        .user.main {
+          z-index: 98;
+          position: fixed;
+          top: 193px;
+          left: 50%;
+          transform: translateX(-50%);
+
+          video {
+            max-width: 95vw !important;
+            max-height: calc(100vh - 300px) !important;
+          }
+        }
+      }
     }
 
     .control {
+      z-index: 999;
       position: fixed;
       left: 0;
       bottom: 0;
