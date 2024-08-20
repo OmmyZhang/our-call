@@ -2,6 +2,10 @@ const CTEXT = "5634944c8a88556f84e824bf36fcf12a";
 const coder = new TextEncoder();
 
 export function gen_app_id(s: string): string {
+  if (s.startsWith("id:")) {
+    return s.slice(3);
+  }
+
   const ctext = CTEXT.split("");
 
   const parray = coder.encode(s);
