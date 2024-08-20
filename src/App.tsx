@@ -4,10 +4,11 @@ import {
   useJoin,
   useLocalMicrophoneTrack,
   useLocalCameraTrack,
+  useLocalScreenTrack,
   usePublish,
   useRemoteUsers,
 } from "agora-rtc-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { gen_app_id } from "./tools";
 import Mao from "./assets/mao.png";
 import Ji from "./assets/ji.png";
@@ -23,14 +24,21 @@ export const Basics = () => {
   //local user
   const [micOn, setMic] = useState(true);
   const [cameraOn, setCamera] = useState(true);
+  const [screenOn, setScreen] = useState(false);
   const { localMicrophoneTrack } = useLocalMicrophoneTrack(micOn);
-  const { localCameraTrack } = useLocalCameraTrack(cameraOn);
+  const { screenTrack } = useLocalScreenTrack(screenOn, {}, "disable");
+  const {localCameraTrack}= useLocalCameraTrack(cameraOn);
   //remote users
   const remoteUsers = useRemoteUsers();
 
   const [mainUser, setMainUser] = useState<number | string | null>(null);
 
-  usePublish([localMicrophoneTrack, localCameraTrack]);
+  const localTrack = useMemo(
+    () => screenOn ? screenTrack : localCameraTrack,
+    [screenOn, cameraOn, screenTrack, localCameraTrack]
+  );
+
+  usePublish([localMicrophoneTrack, localTrack]);
 
   return (
     <div className="our-call"> 
@@ -44,9 +52,9 @@ export const Basics = () => {
               onClick={ () => setMainUser(mainUser == 0 ? null : 0)}
             >
               <LocalUser
-                cameraOn={ cameraOn }
+                cameraOn={ cameraOn || screenOn }
                 micOn={ micOn }
-                videoTrack={ localCameraTrack }
+                videoTrack={ localTrack }
                 cover={ Ji }
               >
                 <samp className="user-name">You</samp>
@@ -69,6 +77,7 @@ export const Basics = () => {
             <div className="left-control">
               <div onClick={ () => setMic(a => !a) } className={ `microphone ${ !micOn ? "off" : "" }` } />
               <div onClick={ () => setCamera(a => !a) } className={ `camera ${ !cameraOn ? "off" : "" }` } />
+              <div onClick={ () => setScreen(a => !a) } className={ `screen ${ !screenOn ? "off" : "" }` } />
             </div>
 
             <div onClick={ () => setCalling(a => !a) } className={ `phone ${ !calling ? "off" : "" }` } />
